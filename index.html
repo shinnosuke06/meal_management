@@ -2,707 +2,520 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>夫婦の健康管理アプリ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- グラフ描画用ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --color-bg-body: #EFEBE9;
-            --color-bg-app: #FFFEFA; 
-            --color-primary: #64B5F6;
-            --color-primary-active: #42A5F5;
-            --color-primary-light: #E3F2FD;
-            --color-primary-gradient: linear-gradient(135deg, #64B5F6, #42A5F5);
-            --color-sugar: #FF7043;
-            --color-sugar-bg: #FFF3E0;
-            --color-sugar-gradient: linear-gradient(135deg, #FFAB91, #FF7043);
-            --color-text-main: #5D4037;
-            --color-text-muted: #8D6E63;
-            --color-text-on-primary: #FFFFFF;
-            --color-border: #F5F5F5;
-            --font-family-base: 'Zen Maru Gothic', sans-serif;
-            --radius-sm: 16px;
-            --radius-md: 24px;
-            --radius-lg: 32px;
-            --radius-full: 9999px;
-            --shadow-sm: 0 4px 6px -1px rgba(93, 64, 55, 0.05), 0 2px 4px -1px rgba(93, 64, 55, 0.03);
-            --shadow-md: 0 10px 15px -3px rgba(93, 64, 55, 0.08), 0 4px 6px -2px rgba(93, 64, 55, 0.04);
-            --shadow-lg: 0 20px 25px -5px rgba(93, 64, 55, 0.1), 0 10px 10px -5px rgba(93, 64, 55, 0.04);
-            --shadow-highlight: 0 8px 20px rgba(100, 181, 246, 0.25);
-            --shadow-sugar-highlight: 0 8px 20px rgba(255, 112, 67, 0.25);
-            --transition-base: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --header-height: 72px;
-            --bottom-nav-height: 80px;
+            --primary: #4CAF50;
+            --secondary: #81C784;
+            --danger: #E53935;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font-family-base); background-color: var(--color-bg-body); margin: 0; color: var(--color-text-main); line-height: 1.6; overscroll-behavior-y: none; }
-        .app-container { max-width: 500px; margin: 0 auto; background-color: var(--color-bg-app); min-height: 100vh; position: relative; padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); box-shadow: var(--shadow-lg); overflow: hidden; }
-        .app-header { background: var(--color-primary-gradient); color: var(--color-text-on-primary); height: var(--header-height); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding-top: env(safe-area-inset-top); text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; background: #e0e0e0; margin: 0; color: var(--text); }
+        .app-container { max-width: 400px; margin: 0 auto; background: var(--bg); min-height: 100vh; position: relative; padding-bottom: 60px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .app-header { background: var(--primary); color: white; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; position: sticky; top: 0; z-index: 10; }
         
-        /* 設定ボタンをヘッダー右に追加 */
-        .settings-btn { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
-        
-        .screen { display: none; padding: 24px 20px; padding-top: 24px; animation: fadeInUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .screen { display: none; padding-top: 10px; }
         .screen.active { display: block; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background-color: #FFFFFF; border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md); border: none; transition: var(--transition-base); position: relative; overflow: hidden; }
-        .card.flat { background: transparent; box-shadow: none; padding: 0; margin-top: 8px; }
-        .card-title { font-size: 1.25rem; font-weight: 900; margin: 0 0 20px 0; color: var(--color-text-main); display: flex; align-items: center; gap: 12px; }
-        .card-title::before { content: ''; display: inline-block; width: 12px; height: 12px; background: var(--color-primary-gradient); border-radius: 50%; box-shadow: 0 2px 6px rgba(100, 181, 246, 0.4); }
+
+        .card { background: var(--card-bg); border-radius: 8px; padding: 15px; margin: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-title { font-size: 1.1rem; margin-top: 0; margin-bottom: 10px; border-bottom: 2px solid var(--bg); padding-bottom: 5px; color: var(--primary); }
         
-        .input-group { margin-bottom: 20px; display: flex; flex-direction: column; position: relative; width: 100%; }
-        .input-group label { margin-bottom: 8px; font-size: 0.95rem; color: var(--color-text-main); font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
-        .input-group input { width: 100%; padding: 14px 16px; border: 2px solid transparent; border-radius: var(--radius-sm); font-size: 1.05rem; background-color: #F5F5F5; color: var(--color-text-main); font-family: inherit; font-weight: 700; transition: var(--transition-base); -webkit-appearance: none; appearance: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); box-sizing: border-box; }
-        .input-group input:focus { outline: none; background-color: #FFFFFF; border-color: var(--color-primary); box-shadow: 0 0 0 4px var(--color-primary-light), var(--shadow-highlight); transform: translateY(-2px); }
-        .input-group input::placeholder { color: #BCAAA4; font-weight: 400; }
+        .input-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        .input-group label { margin-bottom: 5px; font-size: 0.9rem; color: #666; font-weight: bold; }
+        .input-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
         
-        /* 糖質ハイライト調整 */
-        .highlight-sugar { margin-top: 24px; margin-bottom: 24px; }
-        .highlight-sugar label { color: var(--color-sugar); font-size: 1.1rem; }
-        .highlight-sugar label::after { content: '🌟最重要'; font-size: 0.8rem; background: var(--color-sugar-gradient); color: white; padding: 4px 8px; border-radius: var(--radius-full); }
-        .highlight-sugar input { border-color: var(--color-sugar); background-color: var(--color-sugar-bg); color: var(--color-sugar); font-size: 1.4rem; text-align: center; padding: 16px; }
-        .highlight-sugar::after { content: 'g'; position: absolute; right: 20px; bottom: 18px; font-size: 1.2rem; font-weight: 900; color: var(--color-sugar); pointer-events: none; }
+        .highlight-sugar input { border-color: var(--danger); background-color: #ffebee; color: var(--danger); font-weight: bold;}
+        .highlight-sugar label { color: var(--danger); }
         
-        /* 横幅問題の修正: gapを小さくし、min-width:0を追加 */
-        .flex-row { display: flex; gap: 12px; width: 100%; }
-        .flex-row .input-group { flex: 1; min-width: 0; }
+        .btn { border: none; padding: 12px; border-radius: 4px; font-size: 1rem; cursor: pointer; text-align: center; width: 100%; box-sizing: border-box; font-weight: bold; transition: background 0.2s; }
+        .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
+        .btn-camera { background: #2196F3; color: white; font-size: 1.3rem; padding: 30px 15px; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px;}
+        .btn:disabled { background: #ccc !important; color: #666 !important; cursor: not-allowed; box-shadow: none !important; }
         
-        .btn { border: none; padding: 16px 24px; border-radius: var(--radius-full); font-size: 1.1rem; font-weight: 900; cursor: pointer; text-align: center; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-family: inherit; transition: var(--transition-base); position: relative; overflow: hidden; box-shadow: var(--shadow-sm); }
-        .btn-primary { background: var(--color-primary-gradient); color: var(--color-text-on-primary); box-shadow: 0 6px 16px rgba(100, 181, 246, 0.4); }
-        .btn-camera { background-color: var(--color-primary-light); color: var(--color-primary); border: 3px solid var(--color-primary-light); font-size: 1.1rem; padding: 30px 20px; margin-bottom: 16px; border-radius: var(--radius-lg); flex-direction: column; gap: 12px; }
-        .btn-camera::before { content: '📷✨'; font-size: 3rem; display: block; filter: drop-shadow(0 4px 6px rgba(100, 181, 246, 0.3)); }
-        .btn:disabled { background: #E0E0E0 !important; color: #9E9E9E !important; border: none !important; cursor: not-allowed; }
-        .btn:disabled::before { animation: none !important; transform: none !important; filter: grayscale(1); }
-        .camera-status { text-align: center; font-size: 0.95rem; color: var(--color-primary); margin-bottom: 20px; min-height: 1.5em; font-weight: 700; transition: var(--transition-base); }
+        .camera-status { text-align: center; font-size: 0.85rem; color: #666; margin-bottom: 15px; height: 1em; }
         
-        .error-message { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(93, 64, 55, 0.95); color: var(--color-text-on-primary); padding: 14px 24px; border-radius: var(--radius-full); font-size: 0.95rem; font-weight: 700; text-align: center; box-shadow: var(--shadow-lg); z-index: 3000; width: auto; max-width: 90%; display: none; align-items: center; justify-content: center; gap: 12px; }
-        .error-message[style*="display: flex"] { display: flex !important; animation: toast-pop-down 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
-        @keyframes toast-pop-down { 0% { opacity: 0; transform: translate(-50%, -20px); } 100% { opacity: 1; transform: translate(-50%, 0); } }
-        
-        .progress-container { margin-bottom: 24px; }
-        .progress-label { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 8px; font-weight: 700; color: var(--color-text-main); }
-        .progress-bar-bg { background: #F0F0F0; height: 20px; border-radius: var(--radius-full); overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.1); padding: 4px; }
-        .progress-bar-fill { height: 100%; background: var(--color-primary-gradient); border-radius: var(--radius-full); transition: width 0.8s ease; position: relative; }
-        .progress-bar-fill.sugar-fill { background: var(--color-sugar-gradient); }
-        
+        .error-message {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #ffebee;
+            color: var(--danger);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            width: 80%;
+            max-width: 350px;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            border: 1px solid var(--danger);
+        }
+        .error-message.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .progress-container { margin-bottom: 15px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold;}
+        .progress-bar-bg { background: #e0e0e0; height: 12px; border-radius: 6px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.5s ease-out; }
+        .progress-bar-fill.sugar-fill { background: var(--danger); }
+
         .history-list { list-style: none; padding: 0; margin: 0; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 2px dashed var(--color-border); position: relative; }
-        .history-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .history-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .history-name { font-weight: 900; font-size: 1.1rem; color: var(--color-text-main); }
-        .history-meta { font-size: 0.85rem; color: var(--color-text-muted); }
-        
-        /* 編集・削除ボタン周りの調整 */
-        .history-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        .history-sugar { color: var(--color-sugar); font-weight: 900; font-size: 1.1rem; background: var(--color-sugar-bg); padding: 4px 12px; border-radius: var(--radius-full); }
-        .history-actions { display: flex; gap: 8px; }
-        .action-btn { background: #f5f5f5; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); transition: var(--transition-base); }
-        .action-btn:hover { background: #e0e0e0; transform: scale(1.1); }
-        .action-btn.edit:hover { color: var(--color-primary); background: var(--color-primary-light); }
-        .action-btn.delete:hover { color: var(--color-sugar); background: var(--color-sugar-bg); }
+        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }
+        .history-item:last-child { border-bottom: none; }
+        .history-info { display: flex; flex-direction: column; }
+        .history-name { font-weight: bold; }
+        .history-meta { font-size: 0.8rem; color: #888; }
+        .history-sugar { color: var(--danger); font-weight: bold; }
 
-        .date-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-weight: 900; background: var(--color-bg-app); padding: 10px; border-radius: var(--radius-full); box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); }
-        .date-btn { background: var(--color-bg-surface); border: none; font-size: 1.2rem; cursor: pointer; color: var(--color-primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); }
-        
-        /* 統計タブ用スタイル */
-        .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 24px; }
-        .chart-tabs { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; }
-        .chart-tab-btn { background: #F5F5F5; border: none; padding: 8px 16px; border-radius: var(--radius-full); font-weight: 700; color: var(--color-text-muted); cursor: pointer; transition: 0.3s; }
-        .chart-tab-btn.active { background: var(--color-primary); color: white; box-shadow: var(--shadow-sm); }
+        .date-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; }
+        .date-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--primary); padding: 5px 15px; }
 
-        /* モーダル用汎用スタイル */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 24px; border-radius: var(--radius-md); width: 90%; max-width: 400px; box-shadow: var(--shadow-lg); animation: popIn 0.3s ease; }
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-title { font-weight: 900; font-size: 1.2rem; margin-top: 0; margin-bottom: 16px; color: var(--color-text-main); }
-        .modal-buttons { display: flex; gap: 12px; margin-top: 24px; }
-        .modal-btn { flex: 1; padding: 12px; border: none; border-radius: var(--radius-full); font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .modal-btn-cancel { background: #E0E0E0; color: var(--color-text-main); }
-        .modal-btn-danger { background: var(--color-sugar); color: white; }
-        .modal-btn-primary { background: var(--color-primary); color: white; }
-
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; display: flex; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding-bottom: env(safe-area-inset-bottom); height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); padding-top: 10px; }
-        .nav-item { flex: 1; text-align: center; cursor: pointer; color: var(--color-text-muted); font-size: 0.8rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; }
-        .nav-item span:first-child { font-size: 1.6rem; transition: var(--transition-base); }
-        .nav-item.active { color: var(--color-primary); }
-        .nav-item.active span:first-child { transform: translateY(-4px) scale(1.1); }
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; display: flex; background: white; border-top: 1px solid #ccc; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); z-index: 100; height: 60px; align-items: center; }
+        .nav-item { flex: 1; text-align: center; cursor: pointer; color: #999; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .nav-item.active { color: var(--primary); font-weight: bold; border-top: 3px solid var(--primary); margin-top: -3px; }
         
-        .vitals-summary { display: flex; justify-content: space-around; background: var(--color-primary-light); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; }
-        .vitals-item { text-align: center; }
-        .vitals-value { font-size: 1.4rem; font-weight: 900; color: var(--color-primary); }
-        .vitals-label { font-size: 0.85rem; color: var(--color-text-main); font-weight: 700;}
-        
-        /* 編集モード時のヘッダー */
-        .edit-mode-indicator { display: none; background: var(--color-sugar-bg); color: var(--color-sugar); text-align: center; padding: 8px; font-weight: bold; font-size: 0.9rem; margin-bottom: 16px; border-radius: var(--radius-sm); border: 1px dashed var(--color-sugar); }
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row .input-group { flex: 1; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <header class="app-header">
-        健康管理アプリ
-        <button class="settings-btn" onclick="openSettings()">⚙️</button>
-    </header>
-    
+    <div class="app-header">🍽️ 健康管理アプリ</div>
+
     <div id="global-error" class="error-message"></div>
 
-    <!-- 画面A：記録・入力 -->
-    <main id="screen-a" class="screen active">
-        <div class="card flat">
-            <button id="open-camera-btn" class="btn btn-camera">
-                <span>カメラで撮影して解析</span>
-                <span style="font-size: 0.8rem; font-weight: normal;">AIが栄養素を自動入力します</span>
+    <div id="screen-a" class="screen active">
+        <div class="card" style="background: transparent; box-shadow: none; margin-top: 0; padding-bottom: 0;">
+            <input type="file" id="camera-file-input" accept="image/*" capture="environment" style="display: none;">
+            <button id="camera-btn" class="btn btn-camera">
+                <span class="btn-text">📸 カメラで撮影して解析</span>
+                <span class="btn-loader" style="display: none;">⏳ 画像解析中...</span>
             </button>
             <div id="camera-status" class="camera-status"></div>
         </div>
 
         <div class="card">
             <h2 class="card-title">手動入力 / 確認</h2>
-            
-            <div id="edit-indicator" class="edit-mode-indicator">
-                ✎ 過去の記録を編集中です
-            </div>
-            <!-- 編集対象のIDを保持 -->
-            <input type="hidden" id="edit-record-id" value="">
-            <input type="hidden" id="edit-record-type" value="">
-
             <div class="input-group">
                 <label for="food-name">食事名</label>
                 <input type="text" id="food-name" placeholder="例: 鮭弁当">
             </div>
-            
             <div class="input-group highlight-sugar">
-                <label for="sugar">糖質</label>
-                <input type="number" id="sugar" placeholder="45.5" step="0.1">
+                <label for="sugar">糖質 (g) ★重要</label>
+                <input type="number" id="sugar" placeholder="例: 45.5" step="0.1">
             </div>
-
-            <!-- スマホ対応で横幅を調整した flex-row -->
             <div class="flex-row">
                 <div class="input-group">
                     <label for="calories">カロリー (kcal)</label>
-                    <input type="number" id="calories" placeholder="600">
+                    <input type="number" id="calories" placeholder="例: 600">
                 </div>
             </div>
-
             <div class="flex-row">
                 <div class="input-group">
-                    <label for="protein">P (タンパク質)</label>
+                    <label for="protein">P (タンパク質g)</label>
                     <input type="number" id="protein" placeholder="0">
                 </div>
                 <div class="input-group">
-                    <label for="fat">F (脂質)</label>
+                    <label for="fat">F (脂質g)</label>
                     <input type="number" id="fat" placeholder="0">
                 </div>
             </div>
-
             <div class="flex-row">
                 <div class="input-group">
                     <label for="weight">体重 (kg)</label>
-                    <input type="number" id="weight" placeholder="65.2" step="0.1">
+                    <input type="number" id="weight" placeholder="例: 65.2" step="0.1">
                 </div>
                 <div class="input-group">
                     <label for="steps">歩数</label>
-                    <input type="number" id="steps" placeholder="8000">
+                    <input type="number" id="steps" placeholder="例: 8000">
                 </div>
             </div>
-
-            <button id="save-btn" class="btn btn-primary">💾 記録を保存する</button>
+            <button id="save-btn" class="btn btn-primary">
+                <span class="btn-text">💾 記録を保存</span>
+                <span class="btn-loader" style="display: none;">💾 保存中...</span>
+            </button>
         </div>
-    </main>
 
-    <!-- 画面B：履歴・振り返り -->
-    <main id="screen-b" class="screen">
+        <div class="card" style="background: #eceff1;">
+            <h2 class="card-title" style="color: #546e7a; border-bottom-color: #cfd8dc;">⚙️ システム設定</h2>
+            <div class="input-group">
+                <label for="gas-url-input" style="color: #546e7a;">GAS ウェブアプリ URL</label>
+                <input type="text" id="gas-url-input" placeholder="https://script.google.com/.../exec">
+            </div>
+            <div class="flex-row">
+                <button id="save-url-btn" class="btn" style="background: #607d8b; color: white;">URL保存</button>
+                <button id="test-url-btn" class="btn" style="background: #2196F3; color: white;">⚡ 接続テスト</button>
+            </div>
+            <div id="config-status" class="camera-status" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div id="screen-b" class="screen">
         <div class="card">
             <div class="date-selector">
                 <button class="date-btn" id="prev-date-btn">&lt;</button>
-                <span id="display-date">今日 (YYYY/MM/DD)</span>
+                <span id="display-date">今日</span>
                 <button class="date-btn" id="next-date-btn">&gt;</button>
             </div>
-            
-            <div class="vitals-summary" id="vitals-summary-container">
-                <div class="vitals-item">
-                    <div class="vitals-value" id="display-weight">-- kg</div>
-                    <div class="vitals-label">⚖️ 体重</div>
-                </div>
-                <div class="vitals-item">
-                    <div class="vitals-value" id="display-steps">-- 歩</div>
-                    <div class="vitals-label">👟 歩数</div>
-                </div>
-            </div>
-
             <h2 class="card-title">本日の摂取サマリー</h2>
-            <div class="progress-container sugar">
+            <div class="progress-container">
                 <div class="progress-label">
-                    <span>糖質</span><span id="summary-sugar">0g / 目標150g</span>
+                    <span>糖質</span>
+                    <span id="summary-sugar">0g / 目標 150g</span>
                 </div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill sugar-fill" id="bar-sugar" style="width: 0%;"></div></div>
+                <div class="progress-bar-bg">
+                    <div id="sugar-bar" class="progress-bar-fill sugar-fill" style="width: 0%;"></div>
+                </div>
             </div>
-            <div class="progress-container calories">
+            <div class="progress-container">
                 <div class="progress-label">
-                    <span>カロリー</span><span id="summary-calories">0kcal / 目標2000kcal</span>
+                    <span>カロリー</span>
+                    <span id="summary-calories">0kcal / 目標 2000kcal</span>
                 </div>
-                <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-calories" style="width: 0%;"></div></div>
+                <div class="progress-bar-bg">
+                    <div id="calorie-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
             </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">📈 月間推移グラフ</h2>
+            <canvas id="analytics-chart" style="width:100%; height:180px;"></canvas>
         </div>
 
         <div class="card">
             <h2 class="card-title">食事履歴</h2>
             <ul class="history-list" id="history-list-container">
-                <!-- 動的に生成 -->
-            </ul>
+                </ul>
         </div>
-    </main>
+    </div>
 
-    <!-- 画面C：統計（グラフ） -->
-    <main id="screen-c" class="screen">
-        <div class="card">
-            <h2 class="card-title">📈 推移グラフ</h2>
-            <div class="chart-tabs">
-                <button class="chart-tab-btn active" onclick="loadChart('month')">月間</button>
-                <button class="chart-tab-btn" onclick="loadChart('year')">年間</button>
-            </div>
-            <div class="chart-container">
-                <canvas id="myChart"></canvas>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--color-text-muted); text-align: center;">※体重(折れ線) と カロリー(棒) の推移</p>
-        </div>
-    </main>
-
-    <!-- 下部ナビゲーション -->
-    <nav class="bottom-nav">
-        <!-- 「記録する」を押した時はリセット処理を挟むため専用関数を呼ぶ -->
-        <div class="nav-item active" onclick="navToRecord()">
-            <span>📝</span><span>記録する</span>
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('screen-a')">
+            <span>📝</span><span>記録</span>
         </div>
         <div class="nav-item" onclick="switchTab('screen-b')">
-            <span>📋</span><span>振り返る</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('screen-c')">
-            <span>📈</span><span>統計</span>
-        </div>
-    </nav>
-</div>
-
-<!-- ==============================================
-     各種モーダルダイアログ
-=============================================== -->
-<!-- 設定モーダル (GAS URL) -->
-<div id="settings-modal" class="modal-overlay">
-    <div class="modal-content">
-        <h3 class="modal-title">⚙️ システム設定</h3>
-        <p style="font-size: 0.85rem; color: #666; margin-bottom: 16px;">
-            GASでデプロイした「ウェブアプリのURL」を入力してください。
-        </p>
-        <div class="input-group">
-            <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." style="font-size: 0.9rem;">
-        </div>
-        <div class="modal-buttons">
-            <button class="modal-btn modal-btn-cancel" onclick="closeSettings()">キャンセル</button>
-            <button class="modal-btn modal-btn-primary" onclick="saveSettings()">保存</button>
+            <span>📊</span><span>履歴</span>
         </div>
     </div>
 </div>
 
-<!-- 削除確認モーダル -->
-<div id="delete-modal" class="modal-overlay">
-    <div class="modal-content">
-        <h3 class="modal-title" style="color: var(--color-sugar);">🗑️ 削除の確認</h3>
-        <p style="font-size: 0.95rem; margin-bottom: 24px;">
-            この記録を本当に削除してもよろしいですか？<br>この操作は取り消せません。
-        </p>
-        <input type="hidden" id="delete-target-id">
-        <input type="hidden" id="delete-target-type">
-        <div class="modal-buttons">
-            <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">キャンセル</button>
-            <button class="modal-btn modal-btn-danger" id="confirm-delete-btn">削除する</button>
+<div id="confirm-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div class="card" style="width:85%; max-width:320px; margin:0; text-align:center;">
+        <h3 style="margin-top:0; color:var(--danger);">確認</h3>
+        <p id="modal-message">このレコードを削除しますか？</p>
+        <div class="flex-row" style="gap:10px;">
+            <button id="modal-cancel-btn" class="btn" style="background:#ccc; color:#333;">キャンセル</button>
+            <button id="modal-confirm-btn" class="btn" style="background:var(--danger); color:white;">削除する</button>
         </div>
     </div>
 </div>
-
-<!-- カメラ起動用 -->
-<div id="camera-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000;">
-    <video id="camera-stream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-    <button id="capture-btn" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; border-radius: 50%; background: #fff; border: 4px solid #ccc; font-size: 2rem; cursor: pointer;">📸</button>
-    <button id="close-camera-btn" style="position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">✖</button>
-</div>
-<canvas id="camera-canvas" style="display:none;"></canvas>
 
 <script>
-    // =========================================
-    // GAS URLの管理 (localStorage)
-    // =========================================
-    function getGasUrl() {
-        return localStorage.getItem('gasUrl') || '';
-    }
-
-    function openSettings() {
-        document.getElementById('gas-url-input').value = getGasUrl();
-        document.getElementById('settings-modal').style.display = 'flex';
-    }
-
-    function closeSettings() {
-        document.getElementById('settings-modal').style.display = 'none';
-    }
-
-    function saveSettings() {
-        const url = document.getElementById('gas-url-input').value.trim();
-        localStorage.setItem('gasUrl', url);
-        closeSettings();
-        showError("設定を保存しました。");
-        // 設定保存後、履歴タブなら再読み込み
-        if(document.getElementById('screen-b').classList.contains('active')) {
-            fetchHistoryData(currentDate);
-        }
-    }
-
-    // =========================================
-    // 汎用UI処理
-    // =========================================
     let errorTimeout;
     function showError(message) {
         const errorEl = document.getElementById('global-error');
-        errorEl.innerHTML = `<span>${message}</span>`; 
-        errorEl.style.display = 'flex'; 
+        errorEl.innerText = message;
+        errorEl.classList.add('show');
         if(errorTimeout) clearTimeout(errorTimeout);
-        errorTimeout = setTimeout(() => { errorEl.style.display = 'none'; }, 5000);
+        errorTimeout = setTimeout(() => { hideError(); }, 5000);
+    }
+    function hideError() {
+        const errorEl = document.getElementById('global-error');
+        errorEl.classList.remove('show');
+    }
+    function setButtonLoading(btn, isLoading) {
+        const textSpan = btn.querySelector('.btn-text');
+        const loaderSpan = btn.querySelector('.btn-loader');
+        btn.disabled = isLoading;
+        if (textSpan) textSpan.style.display = isLoading ? 'none' : 'inline';
+        if (loaderSpan) loaderSpan.style.display = isLoading ? 'inline' : 'none';
     }
 
-    // ナビゲーション処理
-    function navToRecord() {
-        // 記録タブを押した時は、編集状態をリセットして新規画面にする
-        resetForm();
-        switchTab('screen-a');
-    }
-
+    // タブ切り替え時にグラフと履歴を最新化
     function switchTab(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
-        const activeNav = document.querySelector(`.nav-item[onclick*="${screenId}"]`) || document.querySelector(`.nav-item[onclick*="navToRecord"]`);
+        const activeNav = document.querySelector(`.nav-item[onclick*="${screenId}"]`);
         if(activeNav) activeNav.classList.add('active');
-        document.getElementById('global-error').style.display = 'none';
-        
-        if(screenId === 'screen-b') fetchHistoryData(currentDate);
-        if(screenId === 'screen-c') loadChart('month');
+        hideError();
+
+        if(screenId === 'screen-b') {
+            fetchHistoryData(currentDate);
+            renderChart();
+        }
     }
 
     let currentDate = new Date();
     function updateDisplayDate() {
         document.getElementById('display-date').innerText = `${currentDate.getFullYear()}/${currentDate.getMonth()+1}/${currentDate.getDate()}`;
     }
-    updateDisplayDate();
 
-    function toSafeInteger(valStr, multiplier = 10) {
-        const val = parseFloat(valStr);
-        return isNaN(val) ? 0 : Math.round(val * multiplier);
+    function getGasUrl() {
+        return localStorage.getItem('gas_url') || '';
     }
 
-    // =========================================
-    // データ入力・編集・削除の処理
-    // =========================================
-    function resetForm() {
-        document.getElementById('edit-record-id').value = "";
-        document.getElementById('edit-record-type').value = "";
-        document.getElementById('edit-indicator').style.display = 'none';
-        document.getElementById('save-btn').innerText = "💾 新規記録を保存";
-        document.querySelectorAll('.input-group input').forEach(input => input.value = '');
-    }
-
-    function editRecord(id, type, dataObjJson) {
-        // 履歴リストの編集ボタンから呼ばれる
-        const data = JSON.parse(decodeURIComponent(dataObjJson));
-        resetForm();
-        
-        // モード切替
-        document.getElementById('edit-record-id').value = id;
-        document.getElementById('edit-record-type').value = type;
-        document.getElementById('edit-indicator').style.display = 'block';
-        document.getElementById('save-btn').innerText = "💾 変更を更新する";
-
-        // 値のセット
-        if(type === 'meal') {
-            document.getElementById('food-name').value = data.foodName || "";
-            document.getElementById('sugar').value = data.sugar || "";
-            document.getElementById('calories').value = data.calories || "";
-            document.getElementById('protein').value = data.protein || "";
-            document.getElementById('fat').value = data.fat || "";
-        } else if(type === 'vital') {
-            document.getElementById('weight').value = data.weight || "";
-            document.getElementById('steps').value = data.steps || "";
+    // アプリ起動時のライフサイクル
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedUrl = getGasUrl();
+        if (savedUrl) {
+            document.getElementById('gas-url-input').value = savedUrl;
+        } else {
+            showError("⚠️ GASのURLが未設定です。画面下部のシステム設定に入力してください。");
         }
-        
-        switchTab('screen-a');
-    }
-
-    function confirmDelete(id, type) {
-        document.getElementById('delete-target-id').value = id;
-        document.getElementById('delete-target-type').value = type;
-        document.getElementById('delete-modal').style.display = 'flex';
-    }
-    function closeDeleteModal() {
-        document.getElementById('delete-modal').style.display = 'none';
-    }
-
-    // 削除の実行
-    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-        const id = document.getElementById('delete-target-id').value;
-        const type = document.getElementById('delete-target-type').value;
-        closeDeleteModal();
-        
-        const gasUrl = getGasUrl();
-        if (!gasUrl) return showError("設定からGASのURLを入力してください。");
-
-        try {
-            const payload = { action: 'delete', id: id, type: type };
-            const res = await fetch(gasUrl, { method: 'POST', body: JSON.stringify(payload) });
-            const result = await res.json();
-            if(result.status === 'success') {
-                showError("🗑️ 記録を削除しました。");
-                fetchHistoryData(currentDate); // 再読み込み
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (e) {
-            // モック動作（エラーが出ても画面上は消えたように振る舞うデモ用）
-            console.warn("Delete API Not fully implemented:", e);
-            showError("🗑️ [モック] 記録を削除しました。");
-            fetchHistoryData(currentDate);
-        }
+        updateDisplayDate();
     });
 
-    // 保存（新規・更新）の実行
-    document.getElementById('save-btn').addEventListener('click', async (e) => {
-        const gasUrl = getGasUrl();
-        if (!gasUrl) return openSettings(); // 未設定なら設定画面を開く
-
-        const btn = e.target.closest('.btn');
-        btn.disabled = true;
-        const originalText = btn.innerText;
-        btn.innerText = "💾 保存中...";
-        
-        const editId = document.getElementById('edit-record-id').value;
-
-        try {
-            const payload = {
-                action: editId ? 'update' : 'save',
-                id: editId || null,
-                date: new Date().toISOString(),
-                foodName: document.getElementById('food-name').value,
-                sugar_x10: toSafeInteger(document.getElementById('sugar').value),
-                calories: parseInt(document.getElementById('calories').value) || 0,
-                protein: parseInt(document.getElementById('protein').value) || 0,
-                fat: parseInt(document.getElementById('fat').value) || 0,
-                weight_x10: toSafeInteger(document.getElementById('weight').value),
-                steps: parseInt(document.getElementById('steps').value) || 0
-            };
-
-            const response = await fetch(gasUrl, { method: 'POST', body: JSON.stringify(payload) });
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                showError("✅ データを保存しました！");
-                resetForm();
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (err) {
-            // デモ用のフォールバック
-            console.warn("Save Error:", err);
-            showError("✅ [モック] データを保存しました！(GAS連携未完了)");
-            resetForm();
-        } finally {
-            btn.disabled = false;
-            btn.innerText = originalText;
-        }
-    });
-
-    // =========================================
-    // 履歴データ取得
-    // =========================================
-    async function fetchHistoryData(date) {
-        const listContainer = document.getElementById('history-list-container');
-        listContainer.innerHTML = '<li class="history-item"><div class="history-info"><span class="history-meta">読込中...</span></div></li>';
-        
-        const gasUrl = getGasUrl();
-        if (!gasUrl) {
-            listContainer.innerHTML = '<li class="history-item"><span style="color:red">⚙️ 右上のボタンからGAS URLを設定してください</span></li>';
+    // URL保存処理 (localStorage永続化)
+    document.getElementById('save-url-btn').addEventListener('click', () => {
+        const url = document.getElementById('gas-url-input').value.trim();
+        if (!url.startsWith('https://script.google.com/')) {
+            showError("不正なURLです。Google Apps ScriptのWebアプリURLを入力してください。");
             return;
         }
+        localStorage.setItem('gas_url', url);
+        document.getElementById('config-status').style.color = "green";
+        document.getElementById('config-status').innerText = "⚙️ URLをブラウザに保存しました！";
+        hideError();
+        setTimeout(() => { document.getElementById('config-status').innerText = ""; }, 3000);
+    });
 
+    // ⚡ 接続テストボタンの実装
+    document.getElementById('test-url-btn').addEventListener('click', async () => {
+        const url = document.getElementById('gas-url-input').value.trim();
+        if (!url) { showError("URLが入力されていません。"); return; }
+        const statusEl = document.getElementById('config-status');
+        statusEl.style.color = "#333";
+        statusEl.innerText = "⏳ GASと通信テスト中...";
         try {
-            const dateStr = date.toISOString().split('T')[0];
-            const res = await fetch(`${gasUrl}?date=${dateStr}`);
-            const result = await res.json();
-            
-            if (result.status === 'success') {
-                listContainer.innerHTML = '';
-                let totalSugar = 0; let totalCalories = 0;
-
-                if (!result.records || result.records.length === 0) {
-                    listContainer.innerHTML = '<li class="history-item" style="justify-content:center; color:#8D6E63;">記録がありません</li>';
-                } else {
-                    result.records.forEach(record => {
-                        totalSugar += Number(record.sugar) || 0;
-                        totalCalories += Number(record.calories) || 0;
-                        const timeStr = new Date(record.date).toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
-                        // 編集用にデータを文字列化
-                        const dataJson = encodeURIComponent(JSON.stringify(record));
-                        // 固有ID（なければタイムスタンプ等）
-                        const rId = record.id || record.date; 
-                        
-                        listContainer.innerHTML += `
-                            <li class="history-item">
-                                <div class="history-info">
-                                    <span class="history-name">${record.foodName || '名称未設定'}</span>
-                                    <span class="history-meta">${timeStr} | ${record.calories}kcal</span>
-                                </div>
-                                <div class="history-right">
-                                    <span class="history-sugar">${record.sugar}g</span>
-                                    <div class="history-actions">
-                                        <button class="action-btn edit" onclick="editRecord('${rId}', 'meal', '${dataJson}')">✎</button>
-                                        <button class="action-btn delete" onclick="confirmDelete('${rId}', 'meal')">🗑️</button>
-                                    </div>
-                                </div>
-                            </li>`;
-                    });
-                }
-
-                document.getElementById('summary-sugar').innerText = `${totalSugar.toFixed(1)}g / 150g`;
-                document.getElementById('bar-sugar').style.width = `${Math.min((totalSugar / 150) * 100, 100)}%`;
-                document.getElementById('summary-calories').innerText = `${totalCalories}kcal / 2000kcal`;
-                document.getElementById('bar-calories').style.width = `${Math.min((totalCalories / 2000) * 100, 100)}%`;
-
-                // バイタル表示
-                if (result.vitals) {
-                    document.getElementById('display-weight').innerText = result.vitals.weight ? `${result.vitals.weight} kg` : '-- kg';
-                    document.getElementById('display-steps').innerText = result.vitals.steps ? `${result.vitals.steps} 歩` : '-- 歩';
-                }
+            const response = await fetch(url + '?date=test_connection', { method: 'GET' });
+            if(response.ok) {
+                statusEl.style.color = "green";
+                statusEl.innerText = "⚡ 接続成功！正しく連携されています。";
             } else {
-                throw new Error(result.message);
+                throw new Error("Status: " + response.status);
             }
+        } catch(e) {
+            showError("接続失敗。URLが正しいか、GASの公開範囲が「全員」になっているか確認してください。");
+            statusEl.innerText = "";
+        }
+    });
+
+    // 本番用：履歴データの取得処理
+    async function fetchHistoryData(date) {
+        const url = getGasUrl();
+        if (!url) return;
+        const listContainer = document.getElementById('history-list-container');
+        const dateStr = date.toISOString().split('T')[0];
+        
+        try {
+            const res = await fetch(`${url}?date=${dateStr}`);
+            if (!res.ok) throw new Error("サーバーエラー");
+            const data = await res.json();
+            
+            // サマリー表示の更新
+            document.getElementById('summary-sugar').innerText = `${data.summary.totalSugar}g / 目標 ${data.summary.targetSugar}g`;
+            document.getElementById('summary-calories').innerText = `${data.summary.totalCalories}kcal / 目標 ${data.summary.targetCalories}kcal`;
+            document.getElementById('sugar-bar').style.width = `${Math.min((data.summary.totalSugar/data.summary.targetSugar)*100, 100)}%`;
+            document.getElementById('calorie-bar').style.width = `${Math.min((data.summary.totalCalories/data.summary.targetCalories)*100, 100)}%`;
+
+            // 履歴リストの描画（削除ボタン付き）
+            if(!data.history || data.history.length === 0) {
+                listContainer.innerHTML = '<li class="history-item"><span class="history-meta">この日の記録はありません。</span></li>';
+                return;
+            }
+            listContainer.innerHTML = data.history.map(item => `
+                <li class="history-item">
+                    <div class="history-info">
+                        <span class="history-name">${item.name}</span>
+                        <span class="history-meta">${item.time} | ${item.calories}kcal</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="history-sugar">糖質 ${item.sugar}g</span>
+                        <button onclick="deleteHistoryItem('${item.id}')" style="background:none; border:none; color:var(--danger); font-size:1.2rem; cursor:pointer; padding:5px;">🗑️</button>
+                    </div>
+                </li>
+            `).join('');
         } catch (error) {
-            console.error(error);
-            listContainer.innerHTML = '<li class="history-item"><span style="color:var(--color-sugar)">⚠️ データを取得できませんでした</span></li>';
+            showError("履歴データの同期に失敗しました。");
         }
     }
 
-    document.getElementById('prev-date-btn').addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() - 1);
-        updateDisplayDate();
-        fetchHistoryData(currentDate);
+    // 確認モーダル制御
+    let modalCallback = null;
+    function showConfirmModal(message, callback) {
+        document.getElementById('modal-message').innerText = message;
+        document.getElementById('confirm-modal').style.display = 'flex';
+        modalCallback = callback;
+    }
+    document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+        document.getElementById('confirm-modal').style.display = 'none';
+        modalCallback = null;
     });
-    document.getElementById('next-date-btn').addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() + 1);
-        updateDisplayDate();
-        fetchHistoryData(currentDate);
+    document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+        document.getElementById('confirm-modal').style.display = 'none';
+        if(modalCallback) modalCallback();
     });
 
-    // =========================================
-    // グラフ (Chart.js) 描画処理
-    // =========================================
-    let myChart = null;
-    function loadChart(period) {
-        document.querySelectorAll('.chart-tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        // ※本来はGASから period(月/年) を指定してデータを取得しますが、今回はモックデータで描画します
-        const ctx = document.getElementById('myChart').getContext('2d');
-        
-        if (myChart) myChart.destroy();
-
-        // モックデータ生成
-        const labels = period === 'month' ? ['1日', '5日', '10日', '15日', '20日', '25日', '30日'] : ['1月', '2月', '3月', '4月', '5月', '6月'];
-        const weightData = period === 'month' ? [65.5, 65.2, 65.0, 64.8, 65.1, 64.7, 64.5] : [66.0, 65.8, 65.5, 65.2, 65.0, 64.5];
-        const calorieData = period === 'month' ? [1800, 2100, 1950, 2000, 1850, 2200, 1900] : [1950, 2000, 1900, 1850, 2050, 1900];
-
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: '体重 (kg)',
-                        data: weightData,
-                        type: 'line',
-                        borderColor: '#64B5F6',
-                        backgroundColor: '#64B5F6',
-                        yAxisID: 'y',
-                        tension: 0.3,
-                        borderWidth: 3
-                    },
-                    {
-                        label: 'カロリー (kcal)',
-                        data: calorieData,
-                        type: 'bar',
-                        backgroundColor: 'rgba(255, 112, 67, 0.4)',
-                        yAxisID: 'y1',
-                        borderRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { type: 'linear', display: true, position: 'left', title: {display: true, text: '体重'} },
-                    y1: { type: 'linear', display: true, position: 'right', grid: {drawOnChartArea: false}, title: {display: true, text: 'カロリー'} }
-                }
-            }
+    // 削除(CRUD)機能の本番fetch実装
+    async function deleteHistoryItem(id) {
+        showConfirmModal("この食事記録を本当に削除しますか？", async () => {
+            const url = getGasUrl();
+            if(!url) return;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'delete', id: id })
+                });
+                const result = await response.json();
+                if(result.status === 'success') {
+                    fetchHistoryData(currentDate);
+                    renderChart();
+                } else { throw new Error(result.message); }
+            } catch(e) { showError("削除失敗: " + e.message); }
         });
     }
 
-    // =========================================
-    // カメラ処理 (既存のまま)
-    // =========================================
-    let videoStream = null;
-    const videoElement = document.getElementById('camera-stream');
-    const canvasElement = document.getElementById('camera-canvas');
-    const cameraModal = document.getElementById('camera-modal');
-
-    document.getElementById('open-camera-btn').addEventListener('click', async () => {
-        if (!getGasUrl()) return showError("⚙️ 右上のボタンからGAS URLを設定してください");
+    // Chart.js グラフ描画本番処理
+    let myChart = null;
+    async function renderChart() {
+        const url = getGasUrl();
+        if (!url) return;
         try {
-            videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            videoElement.srcObject = videoStream;
-            cameraModal.style.display = 'block';
-        } catch (err) {
-            showError("カメラの起動に失敗しました。");
-        }
+            const response = await fetch(url + '?period=month');
+            const resData = await response.json();
+            if (resData.status !== 'success') return;
+            
+            const ctx = document.getElementById('analytics-chart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: resData.labels,
+                    datasets: [
+                        { label: '糖質(g)', data: resData.sugarData, borderColor: '#E53935', backgroundColor: 'rgba(229,57,53,0.1)', yAxisID: 'y' },
+                        { label: '体重(kg)', data: resData.weightData, borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.1)', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left' },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        } catch (e) { console.error("Chart Error:", e); }
+    }
+
+    document.getElementById('prev-date-btn').addEventListener('click', () => {
+        currentDate.setDate(currentDate.getDate() - 1); updateDisplayDate(); fetchHistoryData(currentDate);
+    });
+    document.getElementById('next-date-btn').addEventListener('click', () => {
+        currentDate.setDate(currentDate.getDate() + 1); updateDisplayDate(); fetchHistoryData(currentDate);
     });
 
-    function stopCamera() {
-        if (videoStream) { videoStream.getTracks().forEach(track => track.stop()); videoStream = null; }
-        cameraModal.style.display = 'none';
+    function toSafeInteger(valStr, multiplier = 10) {
+        const val = parseFloat(valStr); return isNaN(val) ? 0 : Math.round(val * multiplier);
     }
-    document.getElementById('close-camera-btn').addEventListener('click', stopCamera);
 
-    document.getElementById('capture-btn').addEventListener('click', async () => {
-        canvasElement.width = videoElement.videoWidth; canvasElement.height = videoElement.videoHeight;
-        canvasElement.getContext('2d').drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-        const base64ImageData = canvasElement.toDataURL('image/jpeg', 0.8);
-        stopCamera();
+    // 📸 スマホカメラ起動の実装
+    document.getElementById('camera-btn').addEventListener('click', () => {
+        if (!getGasUrl()) { showError("先にシステム設定でGASのURLを保存してください。"); return; }
+        document.getElementById('camera-file-input').click();
+    });
 
-        const btn = document.getElementById('open-camera-btn');
-        btn.disabled = true; btn.innerText = "⏳ AI解析中...";
+    document.getElementById('camera-file-input').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const btn = document.getElementById('camera-btn');
+        const statusEl = document.getElementById('camera-status');
+        
+        setButtonLoading(btn, true);
+        statusEl.innerText = "⏳ Gemini AIが画像解析中...";
+        hideError();
+        
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const base64Data = event.target.result.split(',')[1];
+            try {
+                const response = await fetch(getGasUrl(), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'analyze_image', image: base64Data })
+                });
+                if (!response.ok) throw new Error("通信エラー");
+                const data = await response.json();
+                
+                document.getElementById('food-name').value = data.foodName || '';
+                document.getElementById('sugar').value = data.sugar || 0;
+                document.getElementById('calories').value = data.calories || 0;
+                document.getElementById('protein').value = data.protein || 0;
+                document.getElementById('fat').value = data.fat || 0;
+                
+                statusEl.innerText = "✅ 解析完了！値を自動入力しました。";
+                setTimeout(() => { statusEl.innerText = ""; }, 3000);
+            } catch (error) {
+                showError("画像解析に失敗しました。GAS側またはGemini APIの設定を確認してください。");
+                statusEl.innerText = "";
+            } finally { setButtonLoading(btn, false); }
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // 💾 記録保存機能の本番fetch実装
+    document.getElementById('save-btn').addEventListener('click', async (e) => {
+        const url = getGasUrl();
+        if (!url) { showError("GASのURLが設定されていません。"); return; }
+        const btn = e.currentTarget;
+        setButtonLoading(btn, true);
+        hideError();
+
         try {
-            const res = await fetch(getGasUrl(), { method: 'POST', body: JSON.stringify({ action: 'analyzeImage', imageData: base64ImageData }) });
-            const result = await res.json();
-            if (result.status === 'success') {
-                document.getElementById('food-name').value = result.foodName || "";
-                document.getElementById('sugar').value = result.sugar || 0;
-                document.getElementById('calories').value = result.calories || 0;
-                document.getElementById('protein').value = result.protein || 0;
-                document.getElementById('fat').value = result.fat || 0;
-                showError("✨ 解析完了！");
-            } else throw new Error(result.message);
+            const payload = {
+                action: 'save',
+                date: new Date().toISOString(),
+                foodName: document.getElementById('food-name').value,
+                sugar_x10: toSafeInteger(document.getElementById('sugar').value, 10),
+                calories: parseInt(document.getElementById('calories').value) || 0,
+                protein: parseInt(document.getElementById('protein').value) || 0,
+                fat: parseInt(document.getElementById('fat').value) || 0,
+                weight_x10: toSafeInteger(document.getElementById('weight').value, 10),
+                steps: parseInt(document.getElementById('steps').value) || 0
+            };
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒でタイムアウト
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) throw new Error("サーバー拒否");
+            const result = await response.json();
+            if (result.status === 'error') throw new Error(result.message);
+
+            alert("🎉 データをスプレッドシートに保存しました！");
+            document.querySelectorAll('.input-group input:not(#gas-url-input)').forEach(input => input.value = '');
         } catch (error) {
-            showError("解析失敗: " + error.message);
-        } finally {
-            btn.disabled = false; btn.innerHTML = "<span>カメラで撮影して解析</span>";
-        }
+            console.error(error);
+            showError("保存エラー: 通信環境またはGASのデプロイ設定を確認してください。");
+        } finally { setButtonLoading(btn, false); }
     });
 </script>
 </body>
